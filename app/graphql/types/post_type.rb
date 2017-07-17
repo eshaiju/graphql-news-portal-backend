@@ -8,7 +8,7 @@ PostType = GraphQL::ObjectType.define do
   field :url, types.String
 
   field :published_at, types.String do
-    resolve -> (post, args, ctx) { post.published_at.strftime('%d %b %Y %H %M %p') }
+    resolve -> (post, args, ctx) { post.published_at }
   end
 
   field :votes, types.Int
@@ -17,7 +17,12 @@ PostType = GraphQL::ObjectType.define do
     resolve -> (post, args, ctx) { post.comments.order(id: :desc) }
   end
 
-  field :author, UserType
+  field :author, UserType do
+    resolve -> (obj, args, ctx) {
+      RecordLoader.for(User).load(obj.author_id)
+    }
+  end
+
   field :latest_comments,types[CommentType] do
     resolve -> (post, args, ctx) { post.comments.order(id: :desc).limit(5) }
   end
